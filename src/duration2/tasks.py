@@ -22,7 +22,7 @@ class RedisDurationTask:
     """
     a redis duration task can create task with a taskid
     """
-    INTERVAL = TimeDelta(minutes=1)
+    INTERVAL = TimeDelta(hours=1)
     KEY_PREFIX = "DURATION_TASK_"
 
     def __init__(self, client: Redis):
@@ -38,12 +38,32 @@ class RedisDurationTask:
             }
         )
 
-    def get_tasks(self, count: int=10) -> List[str]:
-        tasks = self.client.zpopmin(self.key)
+    def get_tasks(self, count: int = 10) -> List[str]:
+        tasks = self.client.zpopmin(self.key, count=count)
         return [
             i[0]
             for i in tasks
         ]
+
+    def get_pre_tasks(self, count: int = 10,
+                      date_time: datetime.datetime = None) -> List[str]:
+        """
+        only old tasks will be obtained.
+        for example, a RedisDurationTask with TimeDelta(hours=1) will only get yesterday's task
+        """
+        tasks = self.client.zpopmin(self.key, count=count)
+        if date_time is None:
+            date_time = datetime.datetime.now()
+        current_index = self.INTERVAL.get_index(date_time)
+        handle_results = []
+        un_handle_results = {}
+        for task, score in tasks:
+            if score >= current_index:
+                un_handle_results[task] = score
+            else:
+                handle_results.append(task)
+        self.client.zadd(self.key, un_handle_results)
+        return handle_results
 
     def clear(self):
         self.client.delete(
