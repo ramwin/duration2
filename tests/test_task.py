@@ -41,6 +41,11 @@ class Test(unittest.TestCase):
                 "task2_473358",
             ]
         )
+        info = task.parse_task("task1_473357")
+        self.assertEqual(
+                [info[0], info[1].lower],
+                ["task1", datetime.datetime(2024, 1, 1, 13, 0, 0)],
+        )
 
     def test_get_pre_tasks(self):
         tasks = task.get_pre_tasks(

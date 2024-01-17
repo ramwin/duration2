@@ -26,3 +26,13 @@ class TimeDelta(datetime.timedelta):
             date_time-datetime.timedelta(seconds=remain),
             date_time-datetime.timedelta(seconds=remain)+self
         )
+
+    def get_portion_from_index(self, index):
+        return closedopen(
+            datetime.datetime.fromtimestamp(
+                    self.total_seconds() * index
+            ),
+            datetime.datetime.fromtimestamp(
+                    self.total_seconds() * (index + 1)
+            ),
+        )

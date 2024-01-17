@@ -12,9 +12,10 @@ use redis to dedupe task
 
 
 import datetime
-from typing import List
+from typing import List, Tuple, Union
 
 from redis import Redis
+from portion import Interval
 from .base import TimeDelta
 
 
@@ -44,6 +45,13 @@ class RedisDurationTask:
             i[0]
             for i in tasks
         ]
+
+    def parse_task(self, task_index: Union[str, bytes]) -> Tuple[str, Interval]:
+        if isinstance(task_index, bytes):
+            task_index = task_index.decode("UTF-8")
+        task_id, index = task_index.rsplit("_", 1)
+        index = int(index)
+        return task_id, self.INTERVAL.get_portion_from_index(index)
 
     def get_pre_tasks(self, count: int = 10,
                       date_time: datetime.datetime = None) -> List[str]:
