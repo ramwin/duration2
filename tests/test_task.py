@@ -48,7 +48,16 @@ class Test(unittest.TestCase):
         )
 
     def test_get_pre_tasks(self):
-        tasks = task.get_pre_tasks(
+        self.assertFalse(
+            RedisDurationTask(
+                    Redis(decode_responses=True),
+                    key_prefix="non"
+            ).get_pre_tasks()
+        )
+        tasks = RedisDurationTask(
+            Redis(decode_responses=True),
+            key_prefix="DURATION_TASK_"
+        ).get_pre_tasks(
             date_time=datetime.datetime(
                 2024, 1, 1, 14, 59, 0),
             parse=True,

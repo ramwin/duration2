@@ -26,12 +26,14 @@ class RedisDurationTask:
     INTERVAL = TimeDelta(hours=1)
     KEY_PREFIX = "DURATION_TASK_"
 
-    def __init__(self, client: Redis, interval=None):
+    def __init__(self, client: Redis, interval=None, key_prefix=None):
         self.client = client
         self.interval = interval or self.INTERVAL
         if (self.interval.total_seconds() % 1) != 0:
             raise NotImplementedError("current not suppert micro seconds")
-        self.key = self.KEY_PREFIX + str(int(self.interval.total_seconds()))
+        if key_prefix is None:
+            key_prefix = self.KEY_PREFIX
+        self.key = key_prefix + str(int(self.interval.total_seconds()))
 
     def create_task(self, task_id: str, date_time: datetime.datetime):
         index = self.interval.get_index(date_time)
@@ -82,7 +84,8 @@ class RedisDurationTask:
                 un_handle_results[task] = score
             else:
                 handle_results.append(task)
-        self.client.zadd(self.key, un_handle_results)
+        if un_handle_results:
+            self.client.zadd(self.key, un_handle_results)
         if not parse:
             return handle_results
         else:
