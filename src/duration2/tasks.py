@@ -42,12 +42,19 @@ class RedisDurationTask:
             }
         )
 
-    def get_tasks(self, count: int = 10) -> List[str]:
+    def get_tasks(self, count: int = 10, parse=False) -> List[str]:
         tasks = self.client.zpopmin(self.key, count=count)
-        return [
+        task_id_index_list = [
             i[0]
             for i in tasks
         ]
+        if not parse:
+            return task_id_index_list
+        else:
+            return [
+                self.parse_task(task_id_index)
+                for task_id_index in task_id_index_list
+            ]
 
     def parse_task(self, task_index: Union[str, bytes]) -> Tuple[str, Interval]:
         if isinstance(task_index, bytes):
@@ -57,7 +64,9 @@ class RedisDurationTask:
         return task_id, self.interval.get_portion_from_index(index)
 
     def get_pre_tasks(self, count: int = 10,
-                      date_time: datetime.datetime = None) -> List[str]:
+                      date_time: datetime.datetime = None,
+                      parse=False,
+                      ) -> List[str]:
         """
         only old tasks will be obtained.
         for example, a RedisDurationTask with TimeDelta(hours=1) will only get yesterday's task
@@ -74,7 +83,13 @@ class RedisDurationTask:
             else:
                 handle_results.append(task)
         self.client.zadd(self.key, un_handle_results)
-        return handle_results
+        if not parse:
+            return handle_results
+        else:
+            return [
+                self.parse_task(task_id_index)
+                for task_id_index in handle_results
+            ]
 
     def clear(self):
         self.client.delete(
