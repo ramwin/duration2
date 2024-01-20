@@ -50,15 +50,16 @@ class Test(unittest.TestCase):
     def test_get_pre_tasks(self):
         tasks = task.get_pre_tasks(
             date_time=datetime.datetime(
-                2024, 1, 1, 14, 59, 0
-            )
+                2024, 1, 1, 14, 59, 0),
+            parse=True,
         )
         self.assertEqual(
-            tasks,
-            [
-                "task1_473357",
-                "task2_473357",
-            ]
+            tasks[0][0],
+            "task1",
+        )
+        self.assertEqual(
+            tasks[1][1].lower,
+            datetime.datetime(2024, 1, 1, 13, 0, 0),
         )
         tasks = task.get_tasks()
         self.assertEqual(
