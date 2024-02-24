@@ -35,9 +35,14 @@ class RedisDurationTask:
             key_prefix = self.KEY_PREFIX
         self.key = key_prefix + str(int(self.interval.total_seconds()))
 
-    def create_task(self, task_id: str, date_time: datetime.datetime):
+    def create_task(self, task_id: str, date_time: datetime.datetime) -> int:
+        """
+        where the task was new created
+            0: not created
+            1: created
+        """
         index = self.interval.get_index(date_time)
-        self.client.zadd(
+        return self.client.zadd(
             self.key,
             {
                 f"{task_id}_{index}": index
