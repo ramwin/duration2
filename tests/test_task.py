@@ -40,12 +40,14 @@ class Test(unittest.TestCase):
     def test_get_wait(self):
         task.clear()
         def f1():
-            tasks = task.get_tasks(count=5, parse=True, timeout=10)
+            tasks = task.get_tasks(count=5, parse=True, timeout=1)
             self.assertTrue(tasks)
             LOGGER.info("task received: %s", tasks)
+            tasks = task.get_tasks(count=5, parse=True, timeout=1)
+            self.assertEqual(tasks, [])
 
         def f2():
-            time.sleep(1)
+            time.sleep(0.3)
             task.create_task("task1", datetime.datetime.now())
             LOGGER.info("task created: task1")
 
