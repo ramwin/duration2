@@ -12,6 +12,7 @@ use redis to dedupe task
 
 
 import datetime
+
 from typing import List, Tuple, Union
 
 from redis import Redis
@@ -49,19 +50,22 @@ class RedisDurationTask:
             }
         )
 
-    def get_tasks(self, count: int = 10, parse=False) -> List[str]:
+    def get_tasks(self, count: int = 10, parse=False, timeout=0) -> List[str]:
         tasks = self.client.zpopmin(self.key, count=count)
+        if not tasks and timeout:
+            task = self.client.bzpopmin(self.key, timeout=timeout)
+            if task:
+                tasks = [task]
         task_id_index_list = [
             i[0]
             for i in tasks
         ]
         if not parse:
             return task_id_index_list
-        else:
-            return [
-                self.parse_task(task_id_index)
-                for task_id_index in task_id_index_list
-            ]
+        return [
+            self.parse_task(task_id_index)
+            for task_id_index in task_id_index_list
+        ]
 
     def parse_task(self, task_index: Union[str, bytes]) -> Tuple[str, Interval]:
         if isinstance(task_index, bytes):
@@ -93,11 +97,10 @@ class RedisDurationTask:
             self.client.zadd(self.key, un_handle_results)
         if not parse:
             return handle_results
-        else:
-            return [
-                self.parse_task(task_id_index)
-                for task_id_index in handle_results
-            ]
+        return [
+            self.parse_task(task_id_index)
+            for task_id_index in handle_results
+        ]
 
     def clear(self):
         self.client.delete(

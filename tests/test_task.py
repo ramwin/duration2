@@ -6,14 +6,20 @@
 
 
 import datetime
+import logging
+import time
 import unittest
+
+from threading import Thread
 
 from redis import Redis
 
 from duration2.tasks import RedisDurationTask
 
 
+logging.basicConfig(level=logging.INFO)
 task = RedisDurationTask(Redis(decode_responses=True))
+LOGGER = logging.getLogger(__name__)
 
 
 class Test(unittest.TestCase):
@@ -30,6 +36,29 @@ class Test(unittest.TestCase):
         task.create_task("task2", datetime2)
         task.create_task("task1", datetime3)
         task.create_task("task2", datetime3)
+
+    def test_get_wait(self):
+        task.clear()
+        def f1():
+            tasks = task.get_tasks(count=5, parse=True, timeout=10)
+            self.assertTrue(tasks)
+            LOGGER.info("task received: %s", tasks)
+
+        def f2():
+            time.sleep(1)
+            task.create_task("task1", datetime.datetime.now())
+            LOGGER.info("task created: task1")
+
+        task1 = Thread(group=None, target=f1)
+        task2 = Thread(group=None, target=f2)
+        task1.start()
+        task2.start()
+        start = time.time()
+        self.assertFalse(
+            task.get_tasks(count=5, parse=True, timeout=1)
+        )
+        end = time.time()
+        self.assertGreater(end-start, 1)
 
     def test(self):
         tasks = task.get_tasks()
