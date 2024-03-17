@@ -31,6 +31,25 @@ Documentation = "https://github.com/unknown/duration2#readme"
 Issues = "https://github.com/unknown/duration2/issues"
 Source = "https://github.com/unknown/duration2"
 
+[tool.coverage.run]
+source_pkgs = ["duration2", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/duration2/__about__.py",
+]
+
+[tool.coverage.paths]
+duration2 = ["src/duration2", "*/duration2/src/duration2"]
+tests = ["tests", "*/duration2/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
+
 [tool.hatch.version]
 path = "src/duration2/__about__.py"
 
@@ -137,21 +156,5 @@ ban-relative-imports = "all"
 # Tests can use magic values, assertions, and relative imports
 "tests/**/*" = ["PLR2004", "S101", "TID252"]
 
-[tool.coverage.run]
-source_pkgs = ["duration2", "tests"]
-branch = true
-parallel = true
-omit = [
-  "src/duration2/__about__.py",
-]
-
-[tool.coverage.paths]
-duration2 = ["src/duration2", "*/duration2/src/duration2"]
-tests = ["tests", "*/duration2/tests"]
-
-[tool.coverage.report]
-exclude_lines = [
-  "no cov",
-  "if __name__ == .__main__.:",
-  "if TYPE_CHECKING:",
-]
+[tool.setuptools.package-data]
+duration2 = ["src/duration2/py.typed"]
