@@ -14,7 +14,7 @@ from threading import Thread
 
 from redis import Redis
 
-from duration2.tasks import RedisDurationTask
+from duration2.tasks import RedisDurationTask, ThresholdTask, RedisThresholdTask
 
 
 logging.basicConfig(level=logging.INFO)
@@ -119,3 +119,27 @@ class Test(unittest.TestCase):
         self.assertEqual(len(tasks), 1)
         tasks = task.get_tasks()
         self.assertEqual(len(tasks), 1)
+
+
+class ThresHoldTest(unittest.TestCase):
+
+    def test_thresholdtask(self):
+        thresholdtask = ThresholdTask(timeout=0.1)
+        self.assertTrue(thresholdtask.run())
+        self.assertFalse(thresholdtask.run())
+        time.sleep(0.01)
+        self.assertFalse(thresholdtask.run())
+        time.sleep(0.09)
+        self.assertTrue(thresholdtask.run())
+
+    def test_redis_thresholdtask(self):
+        thresholdtask = RedisThresholdTask(client=Redis(), max_cnt=3, interval=1)
+        for _ in range(3):
+            self.assertTrue(thresholdtask.run())
+            time.sleep(0.1)
+        for _ in range(6):
+            time.sleep(0.1)
+            self.assertFalse(thresholdtask.run())
+        time.sleep(0.15)
+        self.assertTrue(thresholdtask.run())
+        self.assertFalse(thresholdtask.run())

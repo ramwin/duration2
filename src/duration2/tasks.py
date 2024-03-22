@@ -12,6 +12,8 @@ use redis to dedupe task
 
 
 import datetime
+import time
+import uuid
 
 from typing import List, Tuple, Union
 
@@ -106,3 +108,63 @@ class RedisDurationTask:
         self.client.delete(
             self.key,
         )
+
+
+class ThresholdTask:
+    """
+    a task that will limit you speed
+    timeout: The task will not run until after timeout seconds
+
+    >>> a = ThresholdTask(timeout=1)
+    >>> a.run()
+    True
+    >>> a.run()
+    False
+    >>> time.sleep(1)
+    >>> a.run()
+    True
+    """
+
+    def __init__(self, timeout: float):
+        self.next_run = 0
+        self.timeout = timeout
+
+    def run(self):
+        if time.time() > self.next_run:
+            self.next_run = time.time() + self.timeout
+            return True
+        return False
+
+
+class RedisThresholdTask:
+    """
+    a task can limit the speed of a task. It will use a redis sorted set to 
+    remember the history, and it support multi process share the same threshold
+
+    threshold = RedisDurationTask(
+        client=redis,
+        max_cnt=6,
+        interval=Interval(minutes=60),
+    )
+    threshold.run() will return True if it was called less then 6 times in the last minutes
+    """
+
+    def __init__(self, client: Redis,
+                 max_cnt: int, interval: Union[float, datetime.timedelta],
+                 task_name="",
+                 ):
+        self.client = client
+        self.max_cnt = max_cnt
+        if isinstance(interval, datetime.timedelta):
+            self.interval = interval.total_seconds()
+        else:
+            self.interval = interval
+        self.redis_key = f"redis_threshold_{task_name or uuid.uuid4().hex}"
+
+    def run(self) -> bool:
+        min_value = time.time() - self.interval
+        self.client.zremrangebyscore(self.redis_key, "-inf", min_value)
+        if self.client.zcard(self.redis_key) >= self.max_cnt:
+            return False
+        self.client.zadd(self.redis_key, {uuid.uuid4().hex: time.time()})
+        return True
