@@ -15,7 +15,7 @@ import datetime
 import time
 import uuid
 
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, overload, Literal, Optional
 
 from redis import Redis
 from portion import Interval
@@ -52,7 +52,13 @@ class RedisDurationTask:
             }
         )
 
-    def get_tasks(self, count: int = 10, parse=False, timeout=0) -> List[str]:
+    @overload
+    def get_tasks(self, count: int, parse: Literal[False], timeout: int) -> List[str]:
+        ...
+    @overload
+    def get_tasks(self, count: int, parse: Literal[True], timeout: int) -> List[Tuple[str, Interval]]:
+        ...
+    def get_tasks(self, count: int = 10, parse=False, timeout=0) -> Union[List[str], List[Tuple[str, Interval]]]:
         tasks = self.client.zpopmin(self.key, count=count)
         if not tasks and timeout:
             task = self.client.bzpopmin(self.key, timeout=timeout)
@@ -73,13 +79,23 @@ class RedisDurationTask:
         if isinstance(task_index, bytes):
             task_index = task_index.decode("UTF-8")
         task_id, index = task_index.rsplit("_", 1)
-        index = int(index)
-        return task_id, self.interval.get_portion_from_index(index)
+        index_int = int(index)
+        return task_id, self.interval.get_portion_from_index(index_int)
 
+    @overload
+    def get_pre_tasks(self, count: int,
+                      date_time: Optional[datetime.datetime],
+                      parse: Literal[False]) -> List[str]:
+        ...
+    @overload
+    def get_pre_tasks(self, count: int,
+                      date_time: Optional[datetime.datetime],
+                      parse: Literal[True]) -> List[Tuple[str, Interval]]:
+        ...
     def get_pre_tasks(self, count: int = 10,
-                      date_time: datetime.datetime = None,
-                      parse=False,
-                      ) -> List[str]:
+                      date_time: Optional[datetime.datetime] = None,
+                      parse: bool = False,
+                      ) -> Union[List[str], List[Tuple[str, Interval]]]:
         """
         only old tasks will be obtained.
         for example, a RedisDurationTask with TimeDelta(hours=1) will only get yesterday's task
@@ -126,10 +142,10 @@ class ThresholdTask:
     """
 
     def __init__(self, timeout: float):
-        self.next_run = 0
+        self.next_run: float = 0
         self.timeout = timeout
 
-    def run(self):
+    def run(self) -> bool:
         if time.time() > self.next_run:
             self.next_run = time.time() + self.timeout
             return True
