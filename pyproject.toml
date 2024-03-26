@@ -27,9 +27,9 @@ classifiers = [
 dependencies = ["redis", "portion"]
 
 [project.urls]
-Documentation = "https://github.com/unknown/duration2#readme"
-Issues = "https://github.com/unknown/duration2/issues"
-Source = "https://github.com/unknown/duration2"
+Documentation = "https://github.com/ramwin/duration2#readme"
+Issues = "https://github.com/ramwin/duration2/issues"
+Source = "https://github.com/ramwin/duration2"
 
 [tool.coverage.run]
 source_pkgs = ["duration2", "tests"]
