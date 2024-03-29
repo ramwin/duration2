@@ -10,6 +10,7 @@ Welcome to duration2's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   ../README.md
 
 
 Indices and tables
@@ -18,3 +19,10 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+
+API Reference
+=============
+
+.. automodule:: duration2.tasks
+   :members:
