@@ -12,6 +12,7 @@ use redis to dedupe task
 
 
 import datetime
+import random
 import time
 import uuid
 
@@ -141,8 +142,11 @@ class ThresholdTask:
     True
     """
 
-    def __init__(self, timeout: float):
-        self.next_run: float = 0
+    def __init__(self, timeout: float, immediate: bool = True):
+        if immediate:
+            self.next_run: float = 0
+        else:
+            self.next_run: float = time.time() + random.random() * timeout
         self.timeout = timeout
 
     def run(self) -> bool:
