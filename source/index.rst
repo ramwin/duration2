@@ -26,3 +26,4 @@ API Reference
 
 .. automodule:: duration2.tasks
    :members:
+   :private-members:

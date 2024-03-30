@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 # Xiang Wang <ramwin@qq.com>
 
-
 # pylint: disable=missing-function-docstring
-
 
 """
 use redis to dedupe task
@@ -130,7 +128,9 @@ class RedisDurationTask:
 class ThresholdTask:
     """
     a task that will limit you speed
-    timeout: The task will not run until after timeout seconds
+
+    timeout: The task will not run until after timeout seconds  
+    immediate: default True, set the first run() always return True by setting the next_run to 0 
 
     >>> a = ThresholdTask(timeout=1)
     >>> a.run()
@@ -157,15 +157,15 @@ class ThresholdTask:
 
 
 class RedisThresholdTask:
-    """
-    a task can limit the speed of a task. It will use a redis sorted set to 
+    """a task can limit the speed of a task. It will use a redis sorted set to 
     remember the history, and it support multi process share the same threshold
 
     threshold = RedisDurationTask(
-        client=redis,
-        max_cnt=6,
-        interval=Interval(minutes=60),
-    )
+            client=redis,
+            max_cnt=6,
+            interval=Interval(minutes=60),
+            )
+
     threshold.run() will return True if it was called less then 6 times in the last minutes
     """
 
