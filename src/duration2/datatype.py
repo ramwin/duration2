@@ -3,6 +3,7 @@
 # Xiang Wang <ramwin@qq.com>
 
 
+from typing import Tuple, Union
 from redis import Redis
 
 
@@ -20,17 +21,30 @@ class RedisLimitedTimeList:
     def __init__(self, key: str, max_count: int, client: Redis=None):
         self.key = key
         self.max_count = max_count
-        self.client = client or Redis()
+        self.client = client or Redis(decode_responses=True)
 
-    def add_data(self, data: str, timestamp: float) -> None:
+    def add_data(self, data: str, timestamp: float) -> bool:
+        """
+        add a new time data. return True if it's a new data
+        """
         created = self.client.zadd(self.key, {data: timestamp})
         if created:
             self.shrink()
+        return created
 
     def shrink(self) -> None:
-        current_count = self.client.zcount(self.key)
+        current_count = self.client.zcard(self.key)
         if current_count > self.max_count:
-            self.client.zremrangebyrank(self.key, 0, self.max_count - current_count - 1)
+            self.client.zremrangebyrank(self.key, 0, current_count - self.max_count - 1)
 
     def clear(self):
         self.client.delete(self.key)
+
+    def get_last_data(self) -> Tuple[str, float] | Union[None, None]:
+        """
+        return the latest data
+        """
+        result = self.client.zrange(self.key, -1, -1, withscores=True)
+        if not result:
+            return None, None
+        return result[0]

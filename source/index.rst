@@ -10,7 +10,7 @@ Welcome to duration2's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   ../README.md
+   ./README.md
 
 
 Indices and tables

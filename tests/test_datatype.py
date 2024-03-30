@@ -18,4 +18,14 @@ class Test(TestCase):
         self.task.clear()
 
     def test_redis_limited_timelist(self):
-        self.task.add_data
+        self.task.add_data("second day", 2)
+        self.task.add_data("third day", 3)
+        self.task.add_data("first day", 1)
+        self.assertEqual(
+                self.task.get_last_data(),
+                ("third day", 3),
+        )
+        self.task.add_data("forth day", -1)
+        self.assertEqual(
+                self.task.client.zcard(self.task.key), 3
+        )
