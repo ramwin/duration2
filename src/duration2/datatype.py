@@ -40,7 +40,7 @@ class RedisLimitedTimeList:
     def clear(self):
         self.client.delete(self.key)
 
-    def get_last_data(self) -> Tuple[str, float] | Tuple[None, None]:
+    def get_last_data(self) -> Union[Tuple[str, float], Tuple[None, None]]:
         """
         return the latest data
         """

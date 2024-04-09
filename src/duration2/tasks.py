@@ -163,7 +163,7 @@ class RedisThresholdTask:
     threshold = RedisDurationTask(
             client=redis,
             max_cnt=6,
-            interval=Interval(minutes=60),
+            interval=datetime.timedelta(minutes=60),
             )
 
     threshold.run() will return True if it was called less then 6 times in the last minutes
