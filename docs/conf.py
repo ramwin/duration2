@@ -16,6 +16,7 @@ author = 'Xiang Wang'
 extensions = [
         "myst_parser",
         "sphinx_design",
+        "sphinx.ext.todo",
         "sphinx.ext.autodoc",
         ]
 
