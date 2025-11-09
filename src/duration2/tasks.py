@@ -17,6 +17,7 @@ import uuid
 from typing import List, Tuple, Union, overload, Literal, Optional
 
 from redis import Redis
+from redis.cluster import RedisCluster
 from portion import Interval
 from .base import TimeDelta
 
@@ -28,7 +29,7 @@ class RedisDurationTask:
     INTERVAL = TimeDelta(hours=1)
     KEY_PREFIX = "DURATION_TASK_"
 
-    def __init__(self, client: Redis, interval=None, key_prefix=None):
+    def __init__(self, client: Union[Redis, RedisCluster], interval=None, key_prefix=None):
         self.client = client
         self.interval = interval or self.INTERVAL
         if (self.interval.total_seconds() % 1) != 0:
